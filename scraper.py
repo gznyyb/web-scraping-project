@@ -1,12 +1,13 @@
 # import necessary packages for web scraping
 from bs4 import BeautifulSoup
 import requests
-from time import sleep, time
 
 # import other useful packages
 import pandas as pd
+from time import sleep, time
 from IPython.core.display import clear_output
 import numpy as np
+import argparse
 
 def scraper(tot_page_num, pause_sec, start_site_string, is_clear_output=True):
     
@@ -69,10 +70,10 @@ def scraper(tot_page_num, pause_sec, start_site_string, is_clear_output=True):
         # request the next page
         try: 
             next_code = soup.find('a', class_='link-blue-box next')
-            source = requests.get(site_string + next_code['href']).text
+            source = requests.get(start_site_string + next_code['href']).text
             soup = BeautifulSoup(source, 'lxml')
     
-        except: 
+        except TypeError: 
             print('terminated because no more pages can be accessed from the website')
             break
 
@@ -88,10 +89,13 @@ def scraper(tot_page_num, pause_sec, start_site_string, is_clear_output=True):
     return anime_dataset
 
 if __name__=='__main__':
-    tot_page_num = 400
-    pause_sec = 6
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--tot_page_num', type=int, default=400, help='total page number scrapped')
+    parser.add_argument('--pause_sec', type=int, default=6, help='seconds pause between requests')
+    args = parser.parse_args()
     start_site_string = 'https://myanimelist.net/topanime.php'
-    anime_dataset = scraper(tot_page_num, pause_sec, start_site_string)
+    
+    anime_dataset = scraper(args.tot_page_num, args.pause_sec, start_site_string)
 
-    anime_dataset.to_csv('../anime_dataset.csv')
+    anime_dataset.to_csv('../anime_dataset.csv', index=False)
